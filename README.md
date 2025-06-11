@@ -1,4 +1,5 @@
 # Prueba-Distribuidas
+https://github.com/daniel-devlp/Prueba-Distribuidas
 # Configuración de la Replicación con MySQL
 
 Este documento describe los pasos necesarios para configurar la replicación maestro-esclavo con MySQL en sistemas basados en Ubuntu/Debian.
