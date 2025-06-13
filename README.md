@@ -304,3 +304,168 @@ El registro debe aparecer automáticamente en el esclavo.
 - La replicación síncrona garantiza alta disponibilidad y consistencia, ya que el maestro solo confirma las transacciones cuando el esclavo las ha recibido.
 
 ---
+# Configuración de Replicación en MongoDB 6.0 en Ubuntu 22.04
+
+Este documento describe los pasos para instalar, configurar y validar un replicaset de MongoDB 6.0 sobre Ubuntu 22.04 (Jammy), así como recomendaciones de seguridad para entornos productivos.
+
+---
+
+## 1. Importación de la Clave Pública de MongoDB
+
+```bash
+wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+```
+> **Referencia:** Imagen 1, Imagen 2 (configuración de repositorio).
+
+---
+
+## 2. Configuración del Repositorio
+
+```bash
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+```
+> **Referencia:** Imagen 1, Imagen 3.
+
+---
+
+## 3. Actualización e Instalación
+
+```bash
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+```
+> **Referencia:** Imagen 1, Imagen 3.
+
+---
+
+**Nota:**  
+El contenido generado por IA puede ser incorrecto.
+
+---
+
+## 4. Inicialización del Servicio
+
+```bash
+sudo systemctl start mongod
+sudo systemctl enable mongod
+```
+> **Referencia:** Imagen.
+
+---
+
+**Nota:**  
+El contenido generado por IA puede ser incorrecto.
+
+---
+
+## 5. Configuración de Replicación
+
+### 5.1 Modificación del archivo de configuración
+
+Edita `/etc/mongod.conf` y agrega/modifica las siguientes líneas:
+
+```yaml
+replication:
+  replSetName: "rs0"
+
+net:
+  bindIp: 0.0.0.0
+```
+
+Esto permite que MongoDB escuche peticiones en todas las interfaces y habilita la replicación con el nombre especificado.
+
+> **Referencia:** Interfaz gráfica, Imagen.
+
+---
+
+**Nota:**  
+El contenido generado por IA puede ser incorrecto.
+
+---
+
+### 5.2 Reinicio del Servicio
+
+```bash
+sudo systemctl restart mongod
+```
+
+> **Captura sugerida:** Resultado de `systemctl status mongod` después del reinicio.
+
+---
+
+### 5.3 Inicialización del Replica Set
+
+Conéctate a `mongo` (shell) en uno de los nodos y ejecuta:
+
+```javascript
+rs.initiate({
+  _id: "rs0",
+  members: [
+    { _id: 0, host: "34.172.190.71:27017" },
+    { _id: 1, host: "104.154.217.212:27017" },
+    { _id: 2, host: "34.9.104.16:27017" }
+  ]
+})
+```
+---
+
+**Nota:**  
+El contenido generado por IA puede ser incorrecto.
+
+---
+
+### 5.4 Verificación del Estado del Replica Set
+
+```javascript
+rs.status()
+```
+Revisa la salida para validar que todos los nodos están correctamente sincronizados.
+
+---
+
+**Nota:**  
+El contenido generado por IA puede ser incorrecto.
+
+---
+
+## 6. Análisis de la Configuración
+
+| Característica           | Valor                                         |
+|--------------------------|-----------------------------------------------|
+| Versión MongoDB          | 6.0 (última estable)                          |
+| Sistema Operativo        | Ubuntu 22.04 (Jammy)                          |
+| Nombre Replica Set       | rs0                                           |
+| Número de nodos          | 3 (alta disponibilidad recomendada)           |
+| Configuración de Red     | 0.0.0.0 (todas las interfaces)                |
+
+### Estructura del Replica Set
+
+| Nodo ID | Dirección IP         | Puerto | Rol Inicial Esperado |
+|---------|----------------------|--------|----------------------|
+| 0       | 34.172.190.71        | 27017  | PRIMARY (probable)   |
+| 1       | 104.154.217.212      | 27017  | SECONDARY            |
+| 2       | 34.9.104.16          | 27017  | SECONDARY            |
+
+---
+
+**Nota:**  
+El contenido generado por IA puede ser incorrecto.
+
+---
+
+## 7. Recomendaciones de Seguridad
+
+La configuración actual (`bindIp: 0.0.0.0`) permite conexiones desde cualquier IP. Para entornos de producción:
+
+- Configura un firewall para limitar el acceso solo a IPs confiables.
+- Habilita la autenticación interna de MongoDB.
+- Configura TLS/SSL para cifrar las comunicaciones entre nodos.
+- Crea usuarios con privilegios específicos.
+- Considera restringir el parámetro `bindIp` a rangos de red confiables.
+
+---
+
+> **Advertencia:**  
+> Asegura la correcta protección de los datos y el acceso restringido en ambientes productivos.
+
+---
